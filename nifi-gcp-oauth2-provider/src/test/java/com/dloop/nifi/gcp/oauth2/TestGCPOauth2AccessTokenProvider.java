@@ -16,7 +16,6 @@
  */
 package com.dloop.nifi.gcp.oauth2;
 
-import org.apache.nifi.oauth2.StandardOauth2AccessTokenProvider;
 import org.apache.nifi.processors.gcp.credentials.service.GCPCredentialsControllerService;
 import org.apache.nifi.processors.gcp.util.GoogleUtils;
 import org.apache.nifi.reporting.InitializationException;
@@ -45,7 +44,7 @@ public class TestGCPOauth2AccessTokenProvider {
         runner.addControllerService("test-gcp-oauth2-access-token-provider", tokenProviderService);
         runner.setProperty(tokenProviderService, GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE,
                 "test-gcp-credentials-controller-service");
-        runner.setProperty(tokenProviderService, StandardOauth2AccessTokenProvider.SCOPE, "test-value");
+        runner.setProperty(tokenProviderService, GCPOauth2AccessTokenProvider.SCOPE, "test-value");
         runner.enableControllerService(tokenProviderService);
         runner.assertValid(tokenProviderService);
     }

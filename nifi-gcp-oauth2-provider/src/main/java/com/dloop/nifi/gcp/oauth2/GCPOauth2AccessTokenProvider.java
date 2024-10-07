@@ -39,8 +39,17 @@ import com.google.auth.oauth2.GoogleCredentials;
 
 @Tags({ "gcp", "oauth2", "provider", "authorization", "access token", "http" })
 @CapabilityDescription("Provides OAuth 2.0 access tokens for Google APIs.")
-@SeeAlso({OAuth2AccessTokenProvider.class, GCPCredentialsService.class})
+@SeeAlso({ OAuth2AccessTokenProvider.class, GCPCredentialsService.class })
 public class GCPOauth2AccessTokenProvider extends AbstractControllerService implements OAuth2AccessTokenProvider {
+    public static final PropertyDescriptor PROJECT_ID = new PropertyDescriptor.Builder()
+            .name("project-id")
+            .displayName("Project ID")
+            .description(
+                    "Creates a credential with the provided quota project.")
+            .required(false)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .build();
+
     public static final PropertyDescriptor SCOPE = new PropertyDescriptor.Builder()
             .name("scope")
             .displayName("Scope")
@@ -54,7 +63,7 @@ public class GCPOauth2AccessTokenProvider extends AbstractControllerService impl
             .name("delegate")
             .displayName("Delegate")
             .description(
-                    "If the credentials support domain-wide delegation, creates a copy of the identity so that it * impersonates the specified user; otherwise, returns the same instance.")
+                    "If the credentials support domain-wide delegation, creates a copy of the identity so that it impersonates the specified user; otherwise, returns the same instance.")
             .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
@@ -64,12 +73,14 @@ public class GCPOauth2AccessTokenProvider extends AbstractControllerService impl
     static {
         final List<PropertyDescriptor> props = new ArrayList<>();
         props.add(GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE);
+        props.add(PROJECT_ID);
         props.add(SCOPE);
         props.add(DELEGATE);
         properties = Collections.unmodifiableList(props);
     }
 
     private volatile GoogleCredentials googleCredentials;
+    private volatile String projectId;
     private volatile String[] scopes;
     private volatile String delegate;
 
@@ -87,20 +98,24 @@ public class GCPOauth2AccessTokenProvider extends AbstractControllerService impl
         // Get GCP credentials
         googleCredentials = gcpCredentialsService.getGoogleCredentials();
 
+        // Change quota project if specified
+        projectId = context.getProperty(PROJECT_ID).getValue();
+        if (projectId != null && !projectId.isBlank()) {
+            googleCredentials = googleCredentials.createWithQuotaProject(projectId);
+        }
+
         // Apply required scope(s)
         String scope = context.getProperty(SCOPE).getValue();
         if (scope != null) {
             scopes = scope.split("\\s+");
             if (scopes.length > 0) {
-                getLogger().debug("dloop-scope: " + String.join(" ", scopes));
                 googleCredentials = googleCredentials.createScoped(scopes);
             }
         }
 
-        // Impersonate another account if specified
+        // Impersonate a user account via account wide delegation if specified
         delegate = context.getProperty(DELEGATE).getValue();
         if (delegate != null && !delegate.isBlank()) {
-            getLogger().debug("dloop-delegate: " + delegate);
             googleCredentials = googleCredentials.createDelegated(delegate);
         }
     }

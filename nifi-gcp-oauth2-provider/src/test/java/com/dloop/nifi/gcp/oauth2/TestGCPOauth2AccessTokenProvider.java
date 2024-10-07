@@ -25,26 +25,43 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class TestGCPOauth2AccessTokenProvider {
+
     @BeforeEach
-    public void init() {
-    }
+    public void init() {}
 
     @Test
     public void testService() throws InitializationException {
-        final TestRunner runner = TestRunners.newTestRunner(TestProcessor.class);
-        final GCPCredentialsControllerService credentialsService = new GCPCredentialsControllerService();
-        final GCPOauth2AccessTokenProvider tokenProviderService = new GCPOauth2AccessTokenProvider();
+        final TestRunner runner = TestRunners.newTestRunner(
+            TestProcessor.class
+        );
+        final GCPCredentialsControllerService credentialsService =
+            new GCPCredentialsControllerService();
+        final GCPOauth2AccessTokenProvider tokenProviderService =
+            new GCPOauth2AccessTokenProvider();
 
         // Set up GCP credentials service
-        runner.addControllerService("test-gcp-credentials-controller-service", credentialsService);
+        runner.addControllerService(
+            "test-gcp-credentials-controller-service",
+            credentialsService
+        );
         runner.enableControllerService(credentialsService);
         runner.assertValid(credentialsService);
 
         // Set up GCP access token provider
-        runner.addControllerService("test-gcp-oauth2-access-token-provider", tokenProviderService);
-        runner.setProperty(tokenProviderService, GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE,
-                "test-gcp-credentials-controller-service");
-        runner.setProperty(tokenProviderService, GCPOauth2AccessTokenProvider.SCOPE, "test-value");
+        runner.addControllerService(
+            "test-gcp-oauth2-access-token-provider",
+            tokenProviderService
+        );
+        runner.setProperty(
+            tokenProviderService,
+            GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE,
+            "test-gcp-credentials-controller-service"
+        );
+        runner.setProperty(
+            tokenProviderService,
+            GCPOauth2AccessTokenProvider.SCOPE,
+            "test-value"
+        );
         runner.enableControllerService(tokenProviderService);
         runner.assertValid(tokenProviderService);
     }

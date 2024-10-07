@@ -16,11 +16,11 @@
  */
 package com.dloop.nifi.gcp.oauth2;
 
+import com.google.auth.oauth2.GoogleCredentials;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.SeeAlso;
 import org.apache.nifi.annotation.documentation.Tags;
@@ -35,35 +35,42 @@ import org.apache.nifi.processor.util.StandardValidators;
 import org.apache.nifi.processors.gcp.util.GoogleUtils;
 import org.apache.nifi.reporting.InitializationException;
 
-import com.google.auth.oauth2.GoogleCredentials;
-
 @Tags({ "gcp", "oauth2", "provider", "authorization", "access token", "http" })
 @CapabilityDescription("Provides OAuth 2.0 access tokens for Google APIs.")
 @SeeAlso({ OAuth2AccessTokenProvider.class, GCPCredentialsService.class })
-public class GCPOauth2AccessTokenProvider extends AbstractControllerService implements OAuth2AccessTokenProvider {
-    public static final PropertyDescriptor PROJECT_ID = new PropertyDescriptor.Builder()
+public class GCPOauth2AccessTokenProvider
+    extends AbstractControllerService
+    implements OAuth2AccessTokenProvider {
+
+    public static final PropertyDescriptor PROJECT_ID =
+        new PropertyDescriptor.Builder()
             .name("project-id")
             .displayName("Project ID")
             .description(
-                    "Creates a credential with the provided quota project.")
+                "Creates a credential with the provided quota project."
+            )
             .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
 
-    public static final PropertyDescriptor SCOPE = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor SCOPE =
+        new PropertyDescriptor.Builder()
             .name("scope")
             .displayName("Scope")
             .description(
-                    "Space-delimited, case-sensitive list of scopes of the access request (as per the OAuth 2.0 specification)")
+                "Space-delimited, case-sensitive list of scopes of the access request (as per the OAuth 2.0 specification)"
+            )
             .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
 
-    public static final PropertyDescriptor DELEGATE = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor DELEGATE =
+        new PropertyDescriptor.Builder()
             .name("delegate")
             .displayName("Delegate")
             .description(
-                    "If the credentials support domain-wide delegation, creates a copy of the identity so that it impersonates the specified user; otherwise, returns the same instance.")
+                "If the credentials support domain-wide delegation, creates a copy of the identity so that it impersonates the specified user; otherwise, returns the same instance."
+            )
             .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
@@ -90,10 +97,12 @@ public class GCPOauth2AccessTokenProvider extends AbstractControllerService impl
     }
 
     @OnEnabled
-    public void onEnabled(final ConfigurationContext context) throws InitializationException {
+    public void onEnabled(final ConfigurationContext context)
+        throws InitializationException {
         // Get GCP credentials service
-        GCPCredentialsService gcpCredentialsService = context.getProperty(GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE)
-                .asControllerService(GCPCredentialsService.class);
+        GCPCredentialsService gcpCredentialsService = context
+            .getProperty(GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE)
+            .asControllerService(GCPCredentialsService.class);
 
         // Get GCP credentials
         googleCredentials = gcpCredentialsService.getGoogleCredentials();
@@ -101,7 +110,9 @@ public class GCPOauth2AccessTokenProvider extends AbstractControllerService impl
         // Change quota project if specified
         projectId = context.getProperty(PROJECT_ID).getValue();
         if (projectId != null && !projectId.isBlank()) {
-            googleCredentials = googleCredentials.createWithQuotaProject(projectId);
+            googleCredentials = googleCredentials.createWithQuotaProject(
+                projectId
+            );
         }
 
         // Apply required scope(s)
@@ -132,14 +143,17 @@ public class GCPOauth2AccessTokenProvider extends AbstractControllerService impl
 
         String accessToken = googleCredentials.getAccessToken().getTokenValue();
         String tokenType = googleCredentials.getAuthenticationType();
-        Long expiresIn = googleCredentials.getAccessToken().getExpirationTime().getTime() - System.currentTimeMillis();
+        Long expiresIn =
+            googleCredentials.getAccessToken().getExpirationTime().getTime() -
+            System.currentTimeMillis();
 
         // Return access token
         return new AccessToken(
-                accessToken,
-                null,
-                tokenType,
-                expiresIn,
-                String.join(" ", scopes));
+            accessToken,
+            null,
+            tokenType,
+            expiresIn,
+            String.join(" ", scopes)
+        );
     }
 }

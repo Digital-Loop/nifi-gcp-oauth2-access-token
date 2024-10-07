@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <template encoding-version="1.3">
     <description>This is a minimal example template for connecting to the Google Business Profile API.</description>
     <groupId>c6fd7b1d-0186-1000-c9ec-446fee942a22</groupId>
@@ -17,10 +17,10 @@
             <flowFileExpiration>0 sec</flowFileExpiration>
             <labelIndex>1</labelIndex>
             <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
-            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+            <loadBalancePartitionAttribute />
             <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
-            <name></name>
+            <name />
             <selectedRelationships>Failure</selectedRelationships>
             <selectedRelationships>No Retry</selectedRelationships>
             <selectedRelationships>Original</selectedRelationships>
@@ -42,7 +42,7 @@
                 <group>org.apache.nifi</group>
                 <version>1.20.0</version>
             </bundle>
-            <comments></comments>
+            <comments />
             <descriptors>
                 <entry>
                     <key>application-default-credentials</key>
@@ -71,7 +71,9 @@
                 <entry>
                     <key>proxy-configuration-service</key>
                     <value>
-                        <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                        <identifiesControllerService>
+                            org.apache.nifi.proxy.ProxyConfigurationService
+                        </identifiesControllerService>
                         <name>proxy-configuration-service</name>
                     </value>
                 </entry>
@@ -109,12 +111,14 @@
                 <group>com.dloop</group>
                 <version>0.1.0</version>
             </bundle>
-            <comments></comments>
+            <comments />
             <descriptors>
                 <entry>
                     <key>gcp-credentials-provider-service</key>
                     <value>
-                        <identifiesControllerService>org.apache.nifi.gcp.credentials.service.GCPCredentialsService</identifiesControllerService>
+                        <identifiesControllerService>
+                            org.apache.nifi.gcp.credentials.service.GCPCredentialsService
+                        </identifiesControllerService>
                         <name>gcp-credentials-provider-service</name>
                     </value>
                 </entry>
@@ -164,7 +168,7 @@
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
                 <bulletinLevel>WARN</bulletinLevel>
-                <comments></comments>
+                <comments />
                 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                 <descriptors>
                     <entry>
@@ -188,7 +192,9 @@
                     <entry>
                         <key>SSL Context Service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.ssl.SSLContextService
+                            </identifiesControllerService>
                             <name>SSL Context Service</name>
                         </value>
                     </entry>
@@ -219,7 +225,9 @@
                     <entry>
                         <key>proxy-configuration-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.proxy.ProxyConfigurationService
+                            </identifiesControllerService>
                             <name>proxy-configuration-service</name>
                         </value>
                     </entry>
@@ -233,7 +241,7 @@
                         <key>Proxy Port</key>
                         <value>
                             <dependencies>
-<propertyName>Proxy Host</propertyName>
+                                <propertyName>Proxy Host</propertyName>
                             </dependencies>
                             <name>Proxy Port</name>
                         </value>
@@ -242,7 +250,7 @@
                         <key>Proxy Type</key>
                         <value>
                             <dependencies>
-<propertyName>Proxy Host</propertyName>
+                                <propertyName>Proxy Host</propertyName>
                             </dependencies>
                             <name>Proxy Type</name>
                         </value>
@@ -251,7 +259,7 @@
                         <key>invokehttp-proxy-user</key>
                         <value>
                             <dependencies>
-<propertyName>Proxy Host</propertyName>
+                                <propertyName>Proxy Host</propertyName>
                             </dependencies>
                             <name>invokehttp-proxy-user</name>
                         </value>
@@ -260,7 +268,7 @@
                         <key>invokehttp-proxy-password</key>
                         <value>
                             <dependencies>
-<propertyName>Proxy Host</propertyName>
+                                <propertyName>Proxy Host</propertyName>
                             </dependencies>
                             <name>invokehttp-proxy-password</name>
                         </value>
@@ -268,7 +276,9 @@
                     <entry>
                         <key>oauth2-access-token-provider</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.oauth2.OAuth2AccessTokenProvider</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.oauth2.OAuth2AccessTokenProvider
+                            </identifiesControllerService>
                             <name>oauth2-access-token-provider</name>
                         </value>
                     </entry>
@@ -288,7 +298,7 @@
                         <key>Digest Authentication</key>
                         <value>
                             <dependencies>
-<propertyName>Basic Authentication Username</propertyName>
+                                <propertyName>Basic Authentication Username</propertyName>
                             </dependencies>
                             <name>Digest Authentication</name>
                         </value>
@@ -303,10 +313,10 @@
                         <key>send-message-body</key>
                         <value>
                             <dependencies>
-<dependentValues>POST</dependentValues>
-<dependentValues>PATCH</dependentValues>
-<dependentValues>PUT</dependentValues>
-<propertyName>HTTP Method</propertyName>
+                                <dependentValues>POST</dependentValues>
+                                <dependentValues>PATCH</dependentValues>
+                                <dependentValues>PUT</dependentValues>
+                                <propertyName>HTTP Method</propertyName>
                             </dependencies>
                             <name>send-message-body</name>
                         </value>
@@ -315,8 +325,8 @@
                         <key>form-body-form-name</key>
                         <value>
                             <dependencies>
-<dependentValues>true</dependentValues>
-<propertyName>send-message-body</propertyName>
+                                <dependentValues>true</dependentValues>
+                                <propertyName>send-message-body</propertyName>
                             </dependencies>
                             <name>form-body-form-name</name>
                         </value>
@@ -325,7 +335,7 @@
                         <key>set-form-filename</key>
                         <value>
                             <dependencies>
-<propertyName>form-body-form-name</propertyName>
+                                <propertyName>form-body-form-name</propertyName>
                             </dependencies>
                             <name>set-form-filename</name>
                         </value>
@@ -334,10 +344,10 @@
                         <key>Use Chunked Encoding</key>
                         <value>
                             <dependencies>
-<dependentValues>POST</dependentValues>
-<dependentValues>PATCH</dependentValues>
-<dependentValues>PUT</dependentValues>
-<propertyName>HTTP Method</propertyName>
+                                <dependentValues>POST</dependentValues>
+                                <dependentValues>PATCH</dependentValues>
+                                <dependentValues>PUT</dependentValues>
+                                <propertyName>HTTP Method</propertyName>
                             </dependencies>
                             <name>Use Chunked Encoding</name>
                         </value>
@@ -346,10 +356,10 @@
                         <key>Content-Encoding</key>
                         <value>
                             <dependencies>
-<dependentValues>POST</dependentValues>
-<dependentValues>PATCH</dependentValues>
-<dependentValues>PUT</dependentValues>
-<propertyName>HTTP Method</propertyName>
+                                <dependentValues>POST</dependentValues>
+                                <dependentValues>PATCH</dependentValues>
+                                <dependentValues>PUT</dependentValues>
+                                <propertyName>HTTP Method</propertyName>
                             </dependencies>
                             <name>Content-Encoding</name>
                         </value>
@@ -358,10 +368,10 @@
                         <key>Content-Type</key>
                         <value>
                             <dependencies>
-<dependentValues>POST</dependentValues>
-<dependentValues>PATCH</dependentValues>
-<dependentValues>PUT</dependentValues>
-<propertyName>HTTP Method</propertyName>
+                                <dependentValues>POST</dependentValues>
+                                <dependentValues>PATCH</dependentValues>
+                                <dependentValues>PUT</dependentValues>
+                                <propertyName>HTTP Method</propertyName>
                             </dependencies>
                             <name>Content-Type</name>
                         </value>
@@ -394,7 +404,7 @@
                         <key>Max Length To Put In Attribute</key>
                         <value>
                             <dependencies>
-<propertyName>Put Response Body In Attribute</propertyName>
+                                <propertyName>Put Response Body In Attribute</propertyName>
                             </dependencies>
                             <name>Max Length To Put In Attribute</name>
                         </value>
@@ -415,8 +425,8 @@
                         <key>etag-max-cache-size</key>
                         <value>
                             <dependencies>
-<dependentValues>true</dependentValues>
-<propertyName>use-etag</propertyName>
+                                <dependentValues>true</dependentValues>
+                                <propertyName>use-etag</propertyName>
                             </dependencies>
                             <name>etag-max-cache-size</name>
                         </value>
@@ -632,7 +642,7 @@
                 <retry>false</retry>
             </relationships>
             <state>STOPPED</state>
-            <style/>
+            <style />
             <type>org.apache.nifi.processors.standard.InvokeHTTP</type>
         </processors>
         <processors>
@@ -650,7 +660,7 @@
             <config>
                 <backoffMechanism>PENALIZE_FLOWFILE</backoffMechanism>
                 <bulletinLevel>WARN</bulletinLevel>
-                <comments></comments>
+                <comments />
                 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                 <descriptors>
                     <entry>
@@ -770,7 +780,7 @@
                 <retry>false</retry>
             </relationships>
             <state>STOPPED</state>
-            <style/>
+            <style />
             <type>org.apache.nifi.processors.standard.LogAttribute</type>
         </processors>
     </snippet>

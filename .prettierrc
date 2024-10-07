@@ -1,0 +1,35 @@
+{
+    "singleQuote": true,
+    "bracketSameLine": true,
+    "htmlWhitespaceSensitivity": "ignore",
+    "singleAttributePerLine": true,
+    "tabWidth": 4,
+    "plugins": ["@prettier/plugin-xml", "prettier-plugin-java"],
+    "overrides": [
+        {
+            "files": ".*rc",
+            "options": {
+                "parser": "json"
+            }
+        },
+        {
+            "files": "*.(c|le|sa|sc)ss",
+            "options": {
+                "printWidth": 999
+            }
+        },
+        {
+            "files": "*.xml",
+            "options": {
+                "printWidth": 120,
+                "xmlWhitespaceSensitivity": "ignore"
+            }
+        },
+        {
+            "files": "*.y*ml",
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
+}

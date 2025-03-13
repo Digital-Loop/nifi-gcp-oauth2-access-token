@@ -16,11 +16,30 @@
  */
 package com.dloop.nifi.gcp.oauth2;
 
+import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ImpersonatedCredentials;
+import com.google.cloud.iam.credentials.v1.IamCredentialsClient;
+import com.google.cloud.iam.credentials.v1.IamCredentialsSettings;
+import com.google.cloud.iam.credentials.v1.SignJwtRequest;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.SeeAlso;
 import org.apache.nifi.annotation.documentation.Tags;
@@ -36,29 +55,33 @@ import org.apache.nifi.processors.gcp.util.GoogleUtils;
 import org.apache.nifi.reporting.InitializationException;
 
 @Tags({ "gcp", "oauth2", "provider", "authorization", "access token", "http" })
-@CapabilityDescription("Provides OAuth 2.0 access tokens for Google APIs.")
+@CapabilityDescription("Provides OAuth 2.0 access tokens for Google REST APIs.")
 @SeeAlso({ OAuth2AccessTokenProvider.class, GCPCredentialsService.class })
 public class GCPOauth2AccessTokenProvider
     extends AbstractControllerService
     implements OAuth2AccessTokenProvider {
 
-    public static final PropertyDescriptor PROJECT_ID =
-        new PropertyDescriptor.Builder()
-            .name("project-id")
-            .displayName("Project ID")
-            .description(
-                "Creates a credential with the provided quota project."
-            )
-            .required(false)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .build();
+    private static final String DEFAULT_SCOPE =
+        "https://www.googleapis.com/auth/cloud-platform";
 
     public static final PropertyDescriptor SCOPE =
         new PropertyDescriptor.Builder()
             .name("scope")
             .displayName("Scope")
             .description(
-                "Space-delimited, case-sensitive list of scopes of the access request (as per the OAuth 2.0 specification)"
+                "Whitespace-delimited, case-sensitive list of scopes of the access request (as per the OAuth 2.0 specification). More information: https://developers.google.com/identity/protocols/oauth2/scopes"
+            )
+            .required(false)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .defaultValue(DEFAULT_SCOPE)
+            .build();
+
+    public static final PropertyDescriptor SERVICE_ACCOUNT =
+        new PropertyDescriptor.Builder()
+            .name("impersonate-service-account")
+            .displayName("Impersonate Service Account")
+            .description(
+                "Allow credentials issued to a user or service account to impersonate another service account. The source project must enable the \"IAMCredentials\" API.\nAlso, the target service account must grant the originating principal the \"Service Account Token Creator\" IAM role. More information: https://cloud.google.com/iam/docs/service-account-impersonation"
             )
             .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
@@ -67,12 +90,25 @@ public class GCPOauth2AccessTokenProvider
     public static final PropertyDescriptor DELEGATE =
         new PropertyDescriptor.Builder()
             .name("delegate")
-            .displayName("Delegate")
+            .displayName("Domain-wide delegation")
             .description(
-                "If the credentials support domain-wide delegation, creates a copy of the identity so that it impersonates the specified user; otherwise, returns the same instance."
+                "If the credentials support domain-wide delegation, creates a copy of the identity so that it impersonates the specified user; otherwise, returns the same instance. To enable domain-wide delegation it is necessary to use Google Workspace in your organization. More information: https://developers.google.com/cloud-search/docs/guides/delegation"
             )
             .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .build();
+
+    public static final PropertyDescriptor PROJECT_ID =
+        new PropertyDescriptor.Builder()
+            .name("project-id")
+            .displayName("Project ID")
+            .description(
+                "Sets a custom quota/billing project for the JWT sign request from the IAM Credentials API. Important: The calling user or service account must have the serviceusage.services.use IAM permission for a project to be able to designate it as your quota project. This setting does not have an affect on the quota project of the REST API requests that will use the access token of this service. To set a custom quota project for the REST API requests set the custom header 'x-goog-user-project' as a dynamic property on the InvokeHTTP processor. More information: https://cloud.google.com/docs/quotas/set-quota-project#rest_request"
+            )
+            .required(false)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .dependsOn(SERVICE_ACCOUNT)
+            .dependsOn(DELEGATE)
             .build();
 
     private static final List<PropertyDescriptor> properties;
@@ -80,16 +116,20 @@ public class GCPOauth2AccessTokenProvider
     static {
         final List<PropertyDescriptor> props = new ArrayList<>();
         props.add(GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE);
-        props.add(PROJECT_ID);
         props.add(SCOPE);
+        props.add(SERVICE_ACCOUNT);
         props.add(DELEGATE);
+        props.add(PROJECT_ID);
         properties = Collections.unmodifiableList(props);
     }
 
     private volatile GoogleCredentials googleCredentials;
-    private volatile String projectId;
-    private volatile String[] scopes;
+    private volatile IamCredentialsClient iamCredentialsClient;
+    private volatile AccessToken accessToken;
+    private volatile String serviceAccount;
+    private volatile String scope;
     private volatile String delegate;
+    private volatile String projectId;
 
     @Override
     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
@@ -98,62 +138,172 @@ public class GCPOauth2AccessTokenProvider
 
     @OnEnabled
     public void onEnabled(final ConfigurationContext context)
-        throws InitializationException {
+        throws InitializationException, IOException {
+        // Reset processor
+        googleCredentials = null;
+        iamCredentialsClient = null;
+        accessToken = null;
+
         // Get GCP credentials service
         GCPCredentialsService gcpCredentialsService = context
             .getProperty(GoogleUtils.GCP_CREDENTIALS_PROVIDER_SERVICE)
             .asControllerService(GCPCredentialsService.class);
 
-        // Get GCP credentials
-        googleCredentials = gcpCredentialsService.getGoogleCredentials();
+        // Initialize credentials
+        googleCredentials = gcpCredentialsService
+            .getGoogleCredentials()
+            .createScoped(DEFAULT_SCOPE);
 
-        // Change quota project if specified
-        projectId = context.getProperty(PROJECT_ID).getValue();
-        if (projectId != null && !projectId.isBlank()) {
-            googleCredentials = googleCredentials.createWithQuotaProject(
-                projectId
-            );
-        }
-
-        // Apply required scope(s)
-        String scope = context.getProperty(SCOPE).getValue();
-        if (scope != null) {
-            scopes = scope.split("\\s+");
-            if (scopes.length > 0) {
-                googleCredentials = googleCredentials.createScoped(scopes);
-            }
-        }
-
-        // Impersonate a user account via account wide delegation if specified
+        scope = context.getProperty(SCOPE).getValue().replaceAll("\\s+", " ");
+        serviceAccount = context.getProperty(SERVICE_ACCOUNT).getValue();
         delegate = context.getProperty(DELEGATE).getValue();
-        if (delegate != null && !delegate.isBlank()) {
+        projectId = context.getProperty(PROJECT_ID).getValue();
+
+        if (serviceAccount != null) {
+            // Impersonate service account with user delegation
+            if (delegate != null) {
+                IamCredentialsSettings.Builder builder =
+                    IamCredentialsSettings.newBuilder()
+                        .setCredentialsProvider(
+                            FixedCredentialsProvider.create(googleCredentials)
+                        );
+
+                if (projectId != null) {
+                    builder.setQuotaProjectId(projectId);
+                }
+
+                iamCredentialsClient = IamCredentialsClient.create(
+                    builder.build()
+                );
+
+                return;
+            }
+
+            // Impersonate service account without user delegation
+            googleCredentials = ImpersonatedCredentials.newBuilder()
+                .setSourceCredentials(googleCredentials)
+                .setTargetPrincipal(serviceAccount)
+                .setScopes(Arrays.asList(scope.split(" ")))
+                .build();
+
+            return;
+        }
+
+        googleCredentials = googleCredentials.createScoped(scope.split(" "));
+
+        if (delegate != null) {
             googleCredentials = googleCredentials.createDelegated(delegate);
         }
     }
 
     @Override
     public AccessToken getAccessDetails() {
-        // Refresh access token if expired
-        try {
-            googleCredentials.refreshIfExpired();
-        } catch (IOException e) {
-            getLogger().error(e.getMessage());
-            return null;
+        if (accessToken != null && !accessToken.isExpired()) {
+            return accessToken;
         }
 
-        String accessToken = googleCredentials.getAccessToken().getTokenValue();
-        String tokenType = googleCredentials.getAuthenticationType();
-        Long expiresIn =
-            googleCredentials.getAccessToken().getExpirationTime().getTime() -
-            System.currentTimeMillis();
+        com.google.auth.oauth2.AccessToken gcpAccessToken;
+        if (serviceAccount != null && delegate != null) {
+            gcpAccessToken = getJwtCredentials();
+        } else {
+            gcpAccessToken = getDefaultCredentials();
+        }
 
-        // Return access token
-        return new AccessToken(
-            accessToken,
+        Long expiresIn = Duration.between(
+            Instant.now(),
+            gcpAccessToken.getExpirationTime().toInstant()
+        ).getSeconds();
+
+        accessToken = new AccessToken(
+            gcpAccessToken.getTokenValue(),
             null,
-            tokenType,
+            "OAuth2",
             expiresIn,
-            String.join(" ", scopes)
+            scope
         );
+
+        return accessToken;
+    }
+
+    private com.google.auth.oauth2.AccessToken getDefaultCredentials() {
+        try {
+            googleCredentials.refreshIfExpired();
+
+            return googleCredentials.getAccessToken();
+        } catch (IOException e) {
+            getLogger().error(e.getMessage(), e);
+
+            return null;
+        }
+    }
+
+    private com.google.auth.oauth2.AccessToken getJwtCredentials() {
+        try {
+            long iat = Instant.now().getEpochSecond();
+            long exp = iat + 3600;
+            String payload = new Gson()
+                .toJson(
+                    Map.of(
+                        "aud",
+                        "https://oauth2.googleapis.com/token",
+                        "iat",
+                        iat,
+                        "exp",
+                        exp,
+                        "iss",
+                        serviceAccount,
+                        "scope",
+                        scope,
+                        "sub",
+                        delegate
+                    )
+                );
+
+            SignJwtRequest signJwtRequest = SignJwtRequest.newBuilder()
+                .setName("projects/-/serviceAccounts/" + serviceAccount)
+                .setPayload(payload)
+                .build();
+
+            String assertion = iamCredentialsClient
+                .signJwt(signJwtRequest)
+                .getSignedJwt();
+
+            String body = URLEncodedUtils.format(
+                List.of(
+                    new BasicNameValuePair("assertion", assertion),
+                    new BasicNameValuePair(
+                        "grant_type",
+                        "urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    )
+                ),
+                "utf-8"
+            );
+
+            HttpRequest httpRequest = new NetHttpTransport()
+                .createRequestFactory()
+                .buildPostRequest(
+                    new GenericUrl("https://oauth2.googleapis.com/token"),
+                    ByteArrayContent.fromString(
+                        "application/x-www-form-urlencoded",
+                        body
+                    )
+                );
+
+            JsonObject json = JsonParser.parseString(
+                httpRequest.execute().parseAsString()
+            ).getAsJsonObject();
+
+            return new com.google.auth.oauth2.AccessToken(
+                json.get("access_token").getAsString(),
+                Date.from(
+                    Instant.now()
+                        .plusSeconds(json.get("expires_in").getAsLong())
+                )
+            );
+        } catch (IOException e) {
+            getLogger().error(e.getMessage(), e);
+
+            return null;
+        }
     }
 }

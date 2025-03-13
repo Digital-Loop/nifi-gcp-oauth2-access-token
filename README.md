@@ -13,7 +13,7 @@ This is why we created this custom controller service which adds an alternative 
 
 ```
 mvn clean install
-cp nifi-gcp-oauth2-provider-nar/target/nifi-gcp-oauth2-provider-nar-1.0.0.nar $NIFI_HOME/extensions
+cp nifi-gcp-oauth2-provider-nar/target/nifi-gcp-oauth2-provider-nar-1.28.1.nar $NIFI_HOME/extensions
 ```
 
 ## Usage

@@ -1,6 +1,6 @@
 {
     "name": "nifi-gcp-oauth2-bundle",
-    "version": "1.0.0",
+    "version": "1.28.1",
     "description": "Fortunately Apache NiFi already ships with a couple of processors which provide connections to Google APIs. But since there are dozens of Google APIs and they are also subject to changes from time to time, it's to expect that NiFi cannot offer a specialized processor for all of them out of the box. In our case we were missing a processor for the APIs of [Search Console](https://developers.google.com/webmaster-tools/v1/api_reference_index) and [Business Profile](https://developers.google.com/my-business/ref_overview).",
     "author": {
         "name": "Digital Loop GmbH",

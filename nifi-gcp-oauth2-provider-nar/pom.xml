@@ -22,11 +22,12 @@
     <parent>
         <groupId>com.dloop</groupId>
         <artifactId>nifi-gcp-oauth2-bundle</artifactId>
-        <version>1.0.0</version>
+        <version>1.28.1</version>
     </parent>
 
     <artifactId>nifi-gcp-oauth2-provider-nar</artifactId>
     <packaging>nar</packaging>
+
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <source.skip>true</source.skip>
@@ -36,13 +37,13 @@
         <dependency>
             <groupId>com.dloop</groupId>
             <artifactId>nifi-gcp-oauth2-provider</artifactId>
-            <version>1.0.0</version>
+            <version>${project.parent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-gcp-nar</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.1</version>
             <type>nar</type>
         </dependency>
     </dependencies>

@@ -22,13 +22,49 @@
     <parent>
         <groupId>com.dloop</groupId>
         <artifactId>nifi-gcp-oauth2-bundle</artifactId>
-        <version>1.0.0</version>
+        <version>1.28.1</version>
     </parent>
 
     <artifactId>nifi-gcp-oauth2-provider</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <google.libraries.version>26.47.0</google.libraries.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>${google.libraries.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-iamcredentials</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api.grpc</groupId>
+            <artifactId>proto-google-cloud-iamcredentials-v1</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-api</artifactId>
@@ -37,37 +73,37 @@
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-utils</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-gcp-services-api</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-gcp-processors</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-oauth2-provider-api</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-oauth2-provider-service</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.nifi</groupId>
             <artifactId>nifi-mock</artifactId>
-            <version>1.27.0</version>
+            <version>1.28.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

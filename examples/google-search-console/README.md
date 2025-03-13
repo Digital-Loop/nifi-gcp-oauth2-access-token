@@ -9,10 +9,11 @@ This example runs a [Sites: list](https://developers.google.com/webmaster-tools/
 3. Access to a Search Console property (domain or url) with that account (otherwise the response will be empty).
 4. This module must be [built](../../README.md#manual-build) and NiFi restarted.
 
-## Use Template
+## Use json flow definition
 
-1. [Upload example template](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#Import_Template).
-2. Add example template ("Template" action in top navigation).
+1. Drag a process group to the canvas.
+2. In the pop-up dialog click on the "browse" icon.
+3. Select the [Google_Search_Console_Example.json](./Google_Search_Console_Example.json) file.
 
 ## Configure controller services
 

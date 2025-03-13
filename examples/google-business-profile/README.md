@@ -9,10 +9,11 @@ This example runs a [Method: accounts.list](https://developers.google.com/my-bus
 3. Access to a Google Business Profile with that account (not necessary for this test call).
 4. This module must be [built](../../README.md#manual-build) and NiFi restarted.
 
-## Use Template
+## Use json flow definition
 
-1. [Upload example template](https://nifi.apache.org/docs/nifi-docs/html/user-guide.html#Import_Template).
-2. Add example template ("Template" action in top navigation).
+1. Drag a process group to the canvas.
+2. In the pop-up dialog click on the "browse" icon.
+3. Select the [Google_Business_Profile_Example.json](./Google_Business_Profile_Example.json) file.
 
 ## Configure controller services
 

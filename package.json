@@ -9,6 +9,6 @@
     },
     "devDependencies": {
         "@prettier/plugin-xml": "^3.4.1",
-        "prettier-plugin-java": "^2.6.4"
+        "prettier-plugin-java": "^2.6.7"
     }
 }

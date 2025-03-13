@@ -6,14 +6,15 @@ This is why we created this custom controller service which adds an alternative 
 
 ## Installation
 
-1. Download the latest .nar file from the [release page](https://github.com/Digital-Loop/nifi-gcp-oauth2-access-token/releases).
-2. Copy it to the `extensions` directory of your Apache NiFi deployment.
+1. Download the latest .nar file from the [release page](https://github.com/Digital-Loop/nifi-gcp-oauth2-access-token/releases/latest).
+2. Copy it to the `nar_extensions` directory of your Apache NiFi deployment.
+3. Restart Apache NiFi.
 
 ## Manual Build
 
 ```
 mvn clean install
-cp nifi-gcp-oauth2-provider-nar/target/nifi-gcp-oauth2-provider-nar-1.28.1.nar $NIFI_HOME/extensions
+cp nifi-gcp-oauth2-provider-nar/target/nifi-gcp-oauth2-provider-nar-2.3.0.nar $NIFI_HOME/nar_extensions
 ```
 
 ## Usage
